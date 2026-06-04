@@ -608,7 +608,7 @@ export default function Home() {
             {['home', 'products', 'about', 'why', 'gallery', 'videos', 'contact'].map((key) => (
               <a
                 key={key}
-                href={`#${key === 'home' ? '' : key}`}
+                href={`#${key === 'home' ? 'home' : key === 'products' ? 'specialites' : key}`}
                 className={`font-serif font-medium text-sm tracking-wider transition-all duration-300 hover:text-accent-gold hover:scale-105 transform ${
                   activeSection === key ? 'text-white border-b-2 border-accent-gold pb-0.5' : 'text-white'
                 }`}
@@ -648,7 +648,7 @@ export default function Home() {
             {['home', 'products', 'about', 'why', 'gallery', 'videos', 'contact'].map((key) => (
               <a
                 key={key}
-                href={`#${key === 'home' ? '' : key}`}
+                href={`#${key === 'home' ? 'home' : key === 'products' ? 'specialites' : key}`}
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-white/80 hover:text-accent-gold font-serif text-sm tracking-wider py-3 px-4 rounded-lg hover:bg-white/5 transition-all duration-200"
               >
@@ -660,7 +660,7 @@ export default function Home() {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="relative min-h-screen flex items-center justify-center pt-20">
+      <section id="home" className="relative min-h-screen flex items-center justify-center pt-20">
         <div className="absolute inset-0">
           <Image src="/Face.jpeg" alt="Hero" fill className="object-cover object-[center_-40%]" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/60 to-transparent" />
@@ -1080,7 +1080,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center md:items-start rtl:md:items-end space-y-2">
               {['home', 'products', 'about', 'contact'].map((key) => (
-                <a key={key} href={`#${key === 'home' ? '' : key}`} className="text-white/70 hover:text-accent-gold text-sm transition-colors">
+                <a key={key} href={`#${key === 'home' ? 'home' : key === 'products' ? 'specialites' : key}`} className="text-white/70 hover:text-accent-gold text-sm transition-colors">
                   {t.nav[key as keyof typeof t.nav]}
                 </a>
               ))}

@@ -18,7 +18,7 @@ import { FaInstagram, FaWhatsapp } from 'react-icons/fa'
 
 import { useState, useEffect, useRef } from 'react'
 import ScrollReveal from '../components/ScrollReveal'
-import emailjs from '@emailjs/browser'
+
 
 // ✅ رقم الواتساب في مكان واحد لسهولة التعديل
 const WHATSAPP_NUMBER = '212537883303'
@@ -225,12 +225,8 @@ function VideoShowcase({
   )
 }
 
-// ✅ إعدادات EmailJS من متغيرات البيئة (مع قيم احتياطية للتطوير)
-const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID ?? ''
-const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID ?? ''
-const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ?? ''
-
 // ✅ الحد الأقصى لطول المدخلات (حماية من الإرسال المفرط)
+
 const MAX_NAME = 80
 const MAX_EMAIL = 120
 const MAX_MESSAGE = 2000
@@ -500,7 +496,7 @@ export default function Home() {
     if (formError) setFormError('')
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // ✅ honeypot: إذا امتلأ هذا الحقل المخفي فهو بوت — نتجاهله بصمت
@@ -527,34 +523,40 @@ export default function Home() {
       return
     }
 
-    // ✅ التأكد من وجود إعدادات EmailJS
-    if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
-      setFormError(errMsg('config'))
-      return
-    }
-
     setSubmitting(true)
     setFormError('')
     lastSubmitRef.current = now
 
-    emailjs
-      .send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        { name, email, message },
-        EMAILJS_PUBLIC_KEY,
-      )
-      .then(() => {
-        setForm({ name: '', email: '', message: '' })
-        setShowToast(true)
-        setTimeout(() => setShowToast(false), 3000)
+    try {
+      // ✅ الإرسال عبر الـ backend (لا تُكشف مفاتيح EmailJS في المتصفح)
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message, website }),
       })
-      .catch(() => {
-        setFormError(errMsg('fail'))
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        if (res.status === 429) setFormError(errMsg('rate'))
+        else if (data?.error === 'config') setFormError(errMsg('config'))
+        else if (data?.error === 'email') setFormError(errMsg('email'))
+        else if (data?.error === 'required') setFormError(errMsg('required'))
+        else setFormError(errMsg('fail'))
         lastSubmitRef.current = 0 // السماح بإعادة المحاولة فوراً عند الفشل
-      })
-      .finally(() => setSubmitting(false))
+        return
+      }
+
+      setForm({ name: '', email: '', message: '' })
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 3000)
+    } catch {
+      setFormError(errMsg('fail'))
+      lastSubmitRef.current = 0
+    } finally {
+      setSubmitting(false)
+    }
   }
+
 
 
   useEffect(() => {
